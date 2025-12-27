@@ -13,8 +13,11 @@
 
     <!-- Header -->
     <header
-      class="border-b border-gray-800 p-3 flex justify-between items-center z-40 shadow-xl shrink-0"
-      :class="showList ? 'bg-gray-900' : 'bg-indigo-900/30'"
+      class="border-b border-gray-800 p-3 flex justify-between items-center z-40 shadow-xl shrink-0 transition-colors duration-500"
+      :style="{ 
+         backgroundColor: setlist?.hex_color ? (showList ? '#111827' : setlist.hex_color + 'CC') : '' 
+      }"
+      :class="{ 'bg-gray-900': !setlist?.hex_color && showList, 'bg-indigo-900/30': !setlist?.hex_color && !showList }"
     >
       <div class="flex items-center gap-2">
         <button
@@ -786,54 +789,123 @@
             </button>
           </div>
 
-          <div class="p-4 border-b border-gray-800">
-            <input
-              v-model="librarySearchQuery"
-              type="search"
-              placeholder="Buscar en mis otras listas..."
-              class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
-              autofocus
-            />
+          <div class="p-4 border-b border-gray-800 space-y-3">
+            <!-- Search Input -->
+            <div class="relative">
+              <i class="ph ph-magnifying-glass absolute left-4 top-3.5 text-gray-500 text-lg"></i>
+              <input
+                v-model="librarySearchQuery"
+                type="search"
+                :placeholder="searchScope === 'local' ? 'Buscar en mis canciones...' : 'Buscar en toda la app...'"
+                class="w-full bg-gray-800 border border-gray-700 rounded-xl pl-11 pr-4 py-3 text-white focus:ring-2 focus:ring-indigo-600 focus:border-transparent text-base transition-all"
+                :class="{'ring-1 ring-indigo-500/50 bg-indigo-900/10': searchScope === 'global'}"
+                autofocus
+              />
+            </div>
+
+            <!-- Scope Tabs -->
+            <div class="flex p-1 bg-gray-800 rounded-lg">
+              <button 
+                @click="setSearchScope('local')"
+                class="flex-1 py-1.5 text-xs font-bold rounded-md transition-all flex items-center justify-center gap-2"
+                :class="searchScope === 'local' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-400 hover:text-white'"
+              >
+                <i class="ph ph-user"></i> Mis Canciones
+              </button>
+              <button 
+                @click="setSearchScope('global')"
+                class="flex-1 py-1.5 text-xs font-bold rounded-md transition-all flex items-center justify-center gap-2"
+                :class="searchScope === 'global' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-400 hover:text-white'"
+              >
+                <i class="ph ph-globe"></i> Comunidad
+              </button>
+            </div>
           </div>
 
-          <div class="flex-1 overflow-y-auto p-2">
-            <div v-if="loadingLibrary" class="text-center py-10 text-gray-500">
-              Cargando...
+          <div class="flex-1 overflow-y-auto p-2 scroll-smooth">
+            <!-- Loading State -->
+            <div v-if="loadingLibrary" class="flex flex-col items-center justify-center py-12 text-gray-500">
+               <i class="ph ph-spinner animate-spin text-3xl mb-3 text-indigo-500"></i>
+               <p class="text-sm font-medium">Buscando canciones...</p>
             </div>
 
+            <!-- Empty State -->
             <div
               v-else-if="librarySongs.length === 0"
-              class="text-center py-10 text-gray-500"
+              class="flex flex-col items-center justify-center py-12 text-gray-500 text-center px-6"
             >
-              <p>No se encontraron canciones.</p>
+              <i class="ph ph-mask-sad text-4xl mb-3 opacity-50"></i>
+              <p class="mb-4">No encontramos canciones con "{{ librarySearchQuery }}".</p>
+              
+              <button 
+                v-if="searchScope === 'local' && librarySearchQuery"
+                @click="setSearchScope('global')"
+                class="px-4 py-2 bg-indigo-900/30 text-indigo-400 rounded-lg border border-indigo-500/30 text-sm font-bold hover:bg-indigo-900/50 transition flex items-center gap-2"
+              >
+                <i class="ph ph-globe"></i> Buscar en Comunidad Global
+              </button>
             </div>
 
-            <div v-else class="space-y-2">
+            <!-- Results List -->
+            <div v-else class="space-y-2 pb-4">
               <button
                 v-for="song in librarySongs"
                 :key="song.id"
                 @click="cloneSongToSetlist(song)"
-                class="w-full text-left p-3 rounded-xl hover:bg-gray-800 border border-transparent hover:border-gray-700 transition flex justify-between items-center group"
+                class="w-full text-left p-3 rounded-xl bg-gray-800/40 hover:bg-gray-800 border border-gray-800 hover:border-indigo-500/30 transition flex justify-between items-center group active:scale-[0.99]"
               >
-                <div>
+                <div class="flex-1 min-w-0 pr-3">
                   <h4
-                    class="font-bold text-white group-hover:text-indigo-400 transition"
+                    class="font-bold text-white text-base truncate group-hover:text-indigo-300 transition"
                   >
                     {{ song.title }}
                   </h4>
-                  <p class="text-xs text-gray-500 flex items-center gap-2">
+                  <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+                    <!-- Owner Badge -->
+                    <span 
+                        class="text-[10px] font-bold flex items-center gap-1 bg-gray-900 border px-1.5 py-0.5 rounded shadow-sm"
+                        :class="getUserColor(song.profiles?.username)"
+                    >
+                      <i class="ph ph-user-circle"></i>
+                      {{ song.profiles?.username || 'Anónimo' }}
+                    </span>
+                    
+                    <!-- Meta Info -->
+                    <span class="text-xs text-gray-500 font-mono flex items-center gap-2">
+                       <span class="bg-gray-700/50 px-1.5 rounded text-gray-300">{{ song.key }}</span>
+                       <span>{{ song.bpm }} BPM</span>
+                    </span>
+
+                    <!-- Category Badge -->
                     <span
                       v-if="song.category"
-                      class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-gray-800 text-gray-400 border border-gray-700"
-                      >{{ song.category }}</span
+                      class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md border border-gray-700/50"
+                      :class="{
+                        'text-orange-400 bg-orange-900/10': song.category === 'Alabanza',
+                        'text-purple-400 bg-purple-900/10': song.category === 'Adoración',
+                        'text-blue-400 bg-blue-900/10': song.category === 'Especial'
+                      }"
                     >
-                    <span>{{ song.key }} • {{ song.bpm }} BPM</span>
-                  </p>
+                      {{ song.category }}
+                    </span>
+                  </div>
                 </div>
-                <i
-                  class="ph ph-plus-circle text-2xl text-gray-600 group-hover:text-indigo-500 transition"
-                ></i>
+                
+                <!-- Action Icon -->
+                <div class="w-8 h-8 rounded-full bg-gray-700/50 flex items-center justify-center text-gray-400 group-hover:bg-indigo-600 group-hover:text-white transition shadow-sm">
+                  <i class="ph ph-plus text-lg font-bold"></i>
+                </div>
               </button>
+              
+              <!-- Load More / Global Hint -->
+               <div v-if="searchScope === 'local' && librarySongs.length > 0" class="pt-4 text-center">
+                  <button 
+                    @click="setSearchScope('global')"
+                    class="text-xs text-gray-500 hover:text-indigo-400 transition underline underline-offset-4 decoration-gray-700 hover:decoration-indigo-500"
+                  >
+                    ¿No encuentras lo que buscas? Buscar en toda la app
+                  </button>
+               </div>
             </div>
           </div>
         </div>
@@ -1216,6 +1288,8 @@ const showLibraryModal = ref(false);
 const librarySearchQuery = ref("");
 const librarySongs = ref([]);
 const loadingLibrary = ref(false);
+const searchScope = ref('local'); // 'local' | 'global'
+let searchDebounce = null;
 
 // Drag & Drop
 const isDragging = ref(false);
@@ -1366,44 +1440,66 @@ async function fetchSongs() {
 async function openLibraryModal() {
   showLibraryModal.value = true;
   librarySearchQuery.value = "";
-  loadingLibrary.value = true;
-
-  // Fetch distinct songs from ALL lists owned by user (could be optimized with RPC but client-side distinct is fine for now)
-  const { data } = await supabase
-    .from("songs")
-    .select("*")
-    // Ideally we would filter by owner's lists, but simplified: fetch recent 100 songs
-    .order("created_at", { ascending: false })
-    .limit(100);
-
-  if (data) {
-    // Simple client-side deduplication by Title to avoid clutter
-    const unique = [];
-    const map = new Map();
-    for (const item of data) {
-      if (!map.has(item.title)) {
-        map.set(item.title, true);
-        unique.push(item);
-      }
-    }
-    librarySongs.value = unique;
-  }
-  loadingLibrary.value = false;
+  setSearchScope('local'); // Default to local
 }
 
-// Watch search query to filter locally
-watch(librarySearchQuery, async (newVal) => {
-  if (!newVal) return;
-  // In a real app, we might debounce and search DB. For now, simple filter of loaded list or re-fetch.
-  // Let's implement active DB search for better results
-  loadingLibrary.value = true;
-  const { data } = await supabase
-    .from("songs")
-    .select("*")
-    .ilike("title", `%${newVal}%`)
-    .limit(20);
-  if (data) librarySongs.value = data;
-  loadingLibrary.value = false;
+async function setSearchScope(scope) {
+    searchScope.value = scope;
+    await performSearch();
+}
+
+async function performSearch() {
+    loadingLibrary.value = true;
+    
+    let query = supabase
+        .from("songs")
+        .select("*, profiles(username)")
+        .order("created_at", { ascending: false })
+        .limit(50); // Hard limit to prevent overload
+        
+    // Filter by Scope
+    if (searchScope.value === 'local') {
+        if (user.value) {
+            query = query.eq('owner_id', user.value.id);
+        }
+    }
+    
+    // Filter by Text
+    if (librarySearchQuery.value.trim()) {
+        query = query.ilike("title", `%${librarySearchQuery.value.trim()}%`);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+        console.error("Search Error:", error);
+        // Temporary debug alert
+        Swal.fire({ 
+            icon: 'error', 
+            title: 'Error de Búsqueda', 
+            text: error.message + ' - ' + error.details + ' - ' + error.hint,
+            background: '#1f2937', 
+            color: '#fff' 
+        });
+        loadingLibrary.value = false;
+        return;
+    }
+
+    if (data) {
+        librarySongs.value = data;
+    } else {
+        librarySongs.value = [];
+    }
+    
+    loadingLibrary.value = false;
+}
+
+// Watch search query with debounce
+watch(librarySearchQuery, () => {
+  if (searchDebounce) clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(() => {
+     performSearch();
+  }, 300);
 });
 
 
@@ -1890,6 +1986,7 @@ async function saveSong() {
           original_link: songForm.value.original_link,
           notes: songForm.value.notes,
           category: songForm.value.category,
+          owner_id: user.value?.id
         })
         .select()
         .single();
@@ -1971,6 +2068,38 @@ async function deleteSongFromList(song) {
   } finally {
     isSaving.value = false;
   }
+}
+
+// Helper for deterministic user colors
+function getUserColor(username) {
+    if (!username) return 'text-gray-400 border-gray-700';
+    
+    // Simple hash
+    let hash = 0;
+    for (let i = 0; i < username.length; i++) {
+        hash = username.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    
+    // Map to defined Tailwind color sets (Border + Text)
+    const colors = [
+        'text-red-400 border-red-500/30',
+        'text-orange-400 border-orange-500/30',
+        'text-amber-400 border-amber-500/30',
+        'text-green-400 border-green-500/30',
+        'text-emerald-400 border-emerald-500/30',
+        'text-teal-400 border-teal-500/30',
+        'text-cyan-400 border-cyan-500/30',
+        'text-blue-400 border-blue-500/30',
+        'text-indigo-400 border-indigo-500/30',
+        'text-violet-400 border-violet-500/30',
+        'text-purple-400 border-purple-500/30',
+        'text-fuchsia-400 border-fuchsia-500/30',
+        'text-pink-400 border-pink-500/30',
+        'text-rose-400 border-rose-500/30'
+    ];
+    
+    const index = Math.abs(hash) % colors.length;
+    return colors[index];
 }
 </script>
 

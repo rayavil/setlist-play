@@ -58,8 +58,12 @@
         <div
           v-for="list in mySetlists"
           :key="list.id"
-          class="border rounded-xl flex flex-col justify-between group relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
-          :class="getCardStyle(list)"
+          class="border-2 rounded-xl flex flex-col justify-between group relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+          :style="{ 
+              borderColor: list.hex_color, 
+              boxShadow: '0 0 15px ' + list.hex_color + '1A',
+              background: 'linear-gradient(135deg, #111827 40%, ' + list.hex_color + '22 100%)'
+          }"
         >
           <!-- Top Status Icons -->
           <div class="absolute top-2 right-2 flex gap-1 z-10">
@@ -86,7 +90,7 @@
               <div
                 class="text-5xl text-gray-800 group-hover:text-white/10 transition duration-500 mb-4"
               >
-                <i class="ph ph-playlist"></i>
+                <i class="ph" :class="list.icon_name || 'ph-playlist'" :style="{ color: list.hex_color }"></i>
               </div>
               <div class="relative z-10">
                 <h3
@@ -236,6 +240,37 @@
                     </div>
                 </div>
 
+                <!-- Customization Pickers -->
+                <div class="grid grid-cols-1 gap-3">
+                    <div>
+                        <label class="text-xs text-gray-400 block mb-2 font-bold uppercase tracking-wider">Color</label>
+                        <div class="flex flex-wrap gap-2">
+                            <button 
+                                v-for="color in presetColors" 
+                                :key="color" 
+                                @click="setlistForm.hex_color = color"
+                                class="w-8 h-8 rounded-full border-2 transition hover:scale-110"
+                                :class="setlistForm.hex_color === color ? 'border-white' : 'border-transparent'"
+                                :style="{ backgroundColor: color }"
+                            ></button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400 block mb-2 font-bold uppercase tracking-wider">Icono</label>
+                        <div class="flex flex-wrap gap-2 bg-gray-800/50 p-2 rounded-xl">
+                            <button 
+                                v-for="icon in presetIcons" 
+                                :key="icon" 
+                                @click="setlistForm.icon_name = icon"
+                                class="w-9 h-9 rounded-lg flex items-center justify-center text-xl transition hover:bg-gray-700"
+                                :class="setlistForm.icon_name === icon ? 'bg-gray-700 text-white shadow-lg ring-1 ring-gray-500' : 'text-gray-500'"
+                            >
+                                <i class="ph" :class="icon"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <div v-if="!editingSetlist" class="flex items-center gap-3 bg-gray-800/50 p-3 rounded-xl">
                     <input type="checkbox" v-model="setlistForm.is_public" id="publicCheck" class="w-5 h-5 rounded bg-gray-700 border-gray-600 text-indigo-600 focus:ring-indigo-500">
                     <label for="publicCheck" class="text-sm text-gray-300 flex-1">
@@ -279,8 +314,12 @@ const loading = ref(true);
 // Modal State
 const showSetlistModal = ref(false);
 const editingSetlist = ref(null);
-const setlistForm = ref({ title: '', event_date: '', service_type: '', is_public: true });
+
+const setlistForm = ref({ title: '', event_date: '', service_type: '', is_public: true, hex_color: '#4f46e5', icon_name: 'ph-playlist' });
 const setlistTitleInput = ref(null);
+
+const presetColors = ['#ef4444', '#f97316', '#eab308', '#10b981', '#06b6d4', '#4f46e5', '#8b5cf6', '#ec4899', '#64748b'];
+const presetIcons = ['ph-playlist', 'ph-music-notes', 'ph-microphone-stage', 'ph-guitar', 'ph-piano-keys', 'ph-speaker-high', 'ph-fire', 'ph-star', 'ph-heart', 'ph-cross'];
 
 onMounted(async () => {
   // Check Session
@@ -356,7 +395,7 @@ async function createSetlist() {
 
     editingSetlist.value = null;
     // Default date to next Sunday 10am if creates today? Or just empty. Let's start empty.
-    setlistForm.value = { title: '', event_date: '', service_type: '', is_public: true };
+    setlistForm.value = { title: '', event_date: '', service_type: '', is_public: true, hex_color: '#4f46e5', icon_name: 'ph-playlist' };
     showSetlistModal.value = true;
     await nextTick();
     setlistTitleInput.value?.focus();
@@ -377,7 +416,9 @@ async function saveSetlist() {
             .update({ 
                 title: setlistForm.value.title,
                 event_date: setlistForm.value.event_date || null,
-                service_type: setlistForm.value.service_type
+                service_type: setlistForm.value.service_type,
+                hex_color: setlistForm.value.hex_color,
+                icon_name: setlistForm.value.icon_name
             })
             .eq('id', editingSetlist.value.id);
 
@@ -385,8 +426,11 @@ async function saveSetlist() {
             Swal.fire({ icon: 'error', title: 'Error', text: error.message, background: '#1f2937', color: '#fff' });
         } else {
             editingSetlist.value.title = setlistForm.value.title;
+            editingSetlist.value.title = setlistForm.value.title;
             editingSetlist.value.event_date = setlistForm.value.event_date;
             editingSetlist.value.service_type = setlistForm.value.service_type;
+            editingSetlist.value.hex_color = setlistForm.value.hex_color;
+            editingSetlist.value.icon_name = setlistForm.value.icon_name;
             closeSetlistModal();
             Swal.fire({
                 toast: true,
@@ -408,7 +452,9 @@ async function saveSetlist() {
                 owner_id: user.value.id,
                 is_public: setlistForm.value.is_public,
                 event_date: setlistForm.value.event_date || null,
-                service_type: setlistForm.value.service_type
+                service_type: setlistForm.value.service_type,
+                hex_color: setlistForm.value.hex_color,
+                icon_name: setlistForm.value.icon_name
             })
             .select()
             .single();
@@ -438,7 +484,9 @@ async function renameSetlist(list) {
         title: list.title, 
         is_public: list.is_public,
         event_date: formattedDate,
-        service_type: list.service_type || ''
+        service_type: list.service_type || '',
+        hex_color: list.hex_color || '#4f46e5',
+        icon_name: list.icon_name || 'ph-playlist'
     };
     showSetlistModal.value = true;
     await nextTick();

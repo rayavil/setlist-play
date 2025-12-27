@@ -40,18 +40,13 @@
             :disabled="loading"
             class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
           >
-            {{ loading ? "Procesando..." : (isLoginMode ? "Ingresar" : "Crear Cuenta") }}
+            {{ loading ? "Procesando..." : "Ingresar" }}
           </button>
         </div>
 
-        <div class="text-center">
-          <button
-            type="button"
-            @click="isLoginMode = !isLoginMode"
-            class="text-sm text-indigo-400 hover:underline"
-          >
-            {{ isLoginMode ? "¿No tienes cuenta? Regístrate" : "¿Ya tienes cuenta? Inicia Sesión" }}
-          </button>
+        <!-- Registration Disabled -->
+        <div class="text-center text-xs text-gray-500 mt-4">
+          ¿No tienes cuenta? Contacta al administrador.
         </div>
 
         <div
@@ -81,7 +76,6 @@ const email = ref("");
 const password = ref("");
 const loading = ref(false);
 const errorMsg = ref("");
-const isLoginMode = ref(true); // Toggle between Login and Signup
 
 const handleSubmit = async () => {
   if (!email.value || !password.value) {
@@ -94,24 +88,11 @@ const handleSubmit = async () => {
 
   try {
     let result;
-    if (isLoginMode.value) {
-      // LOGIN
-      result = await supabase.auth.signInWithPassword({
+    // ALWAYS LOGIN
+    result = await supabase.auth.signInWithPassword({
         email: email.value,
         password: password.value,
-      });
-    } else {
-      // SIGNUP
-      result = await supabase.auth.signUp({
-        email: email.value,
-        password: password.value,
-        options: {
-          data: {
-            username: email.value.split('@')[0]
-          }
-        }
-      });
-    }
+    });
 
     const { error } = result;
 
@@ -121,12 +102,7 @@ const handleSubmit = async () => {
         errorMsg.value += " (Error de configuración en Supabase: Email Provider deshabilitado)";
       }
     } else {
-      if (isLoginMode.value) {
-        router.push("/");
-      } else {
-        alert("Registro exitoso! Ya puedes iniciar sesión.");
-        isLoginMode.value = true; // Switch back to login
-      }
+      router.push("/");
     }
   } catch (err) {
     console.error(err);
