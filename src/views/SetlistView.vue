@@ -1261,6 +1261,7 @@ const {
   joinSession,
   broadcast,
   onSyncCommand,
+  onPeerJoin,
   resync,
   offset,
   rtt,
@@ -1528,6 +1529,21 @@ onSyncCommand.value = (payload, autoOffset = 0) => {
     } else if (!forcePlay && isPlaying.value) {
       togglePlay(false);
     }
+  }
+};
+
+// Auto-broadcast state when a follower joins/pings
+onPeerJoin.value = (peerId) => {
+  // We don't want to flood, but pings are rare (only on join/resync)
+  // Broadcast current state to ensure the new peer sees where we are
+  if (currentIndex.value >= 0) {
+    broadcast({ type: "jump", index: currentIndex.value });
+  }
+  if (transposeLevel.value !== 0) {
+    broadcast({ type: "transpose", level: transposeLevel.value });
+  }
+  if (isPlaying.value) {
+     broadcast({ type: "metro", playing: true, startAt: Date.now() + 1000 }); // Approximate
   }
 };
 

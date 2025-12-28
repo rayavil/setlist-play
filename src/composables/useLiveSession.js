@@ -10,6 +10,7 @@ export function useLiveSession() {
   // We can use a simple callback system or just expose refs that App.vue watches?
   // Callbacks are better for "Events" like "Jump to song X"
   const onSyncCommand = ref(null); // Function
+  const onPeerJoin = ref(null); // Function (Leader only)
 
   const offset = ref(0);
   const rtt = ref(0);
@@ -54,6 +55,9 @@ export function useLiveSession() {
               targetId: payload.from,
             },
           });
+          
+          // Notify app that someone joined/synced
+          if (onPeerJoin.value) onPeerJoin.value(payload.from);
         }
 
         // 2. Follower Logic: Process Pong
@@ -191,5 +195,6 @@ export function useLiveSession() {
     resync, // Exported for UI
     broadcast,
     onSyncCommand,
+    onPeerJoin, // Exported: callback for leader when follower pings
   };
 }
