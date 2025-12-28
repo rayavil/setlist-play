@@ -14,10 +14,7 @@
     <!-- Header -->
     <header
       class="border-b border-gray-800 p-3 flex justify-between items-center z-40 shadow-xl shrink-0 transition-colors duration-500"
-      :style="{ 
-         backgroundColor: setlist?.hex_color ? (showList ? '#111827' : setlist.hex_color + 'CC') : '' 
-      }"
-      :class="{ 'bg-gray-900': !setlist?.hex_color && showList, 'bg-indigo-900/30': !setlist?.hex_color && !showList }"
+      :class="showList ? 'bg-gray-900' : 'bg-indigo-900/30'"
     >
       <div class="flex items-center gap-2">
         <button
