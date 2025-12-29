@@ -52,27 +52,38 @@ export function useSongImporter() {
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
 
-        // Extract Title and Artist (Often in H1 or Title)
-        // LaCuerda usually: <div id="tH1"><h1>Title <span>Artist</span></h1></div>
+        // Extract Title and Artist
+        // Try User's suggestion: H1 (Title) and H2 (Artist)
         let title = 'Desconocido';
         let artist = '';
-        
-        const h1 = doc.querySelector('div#tH1 h1');
-        if (h1) {
-            title = h1.childNodes[0]?.textContent?.trim() || title;
-            artist = h1.querySelector('span')?.textContent?.trim() || '';
-            if (artist) title += ` - ${artist}`;
+
+        const h1 = doc.querySelector('h1');
+        if(h1) title = h1.textContent.trim();
+
+        const h2 = doc.querySelector('h2');
+        if(h2) artist = h2.textContent.trim();
+
+        // Fallback to old selector if H1 is empty or generic
+        if (!title || title === 'LaCuerda.net') {
+             const h1Old = doc.querySelector('div#tH1 h1');
+             if (h1Old) {
+                title = h1Old.childNodes[0]?.textContent?.trim() || title;
+                artist = h1Old.querySelector('span')?.textContent?.trim() || artist;
+             }
         }
+
+        if (artist && !title.includes(artist)) title += ` - ${artist}`;
 
         // Extract Content (Pre tags usually)
         // LaCuerda: <pre id="ord_p">... content ...</pre>
         // Best Candidate Selection
-        // LaCuerda uses 'pre#ord_p' or 'div#t_core' sometimes.
+        // User suggested 'div#t_body'
         const candidates = [
+            doc.querySelector('div#t_body'),
             doc.querySelector('pre#ord_p'),
             doc.querySelector('div#t_core'),
             doc.querySelector('.core'),
-            doc.querySelector('#main_body') // Palabrayespiritu
+            doc.querySelector('#main_body') 
         ];
 
         let contentEl = candidates.find(el => el && el.textContent.length > 50);
@@ -100,11 +111,23 @@ export function useSongImporter() {
 
         const formatted = convertChordsToBracketed(raw);
 
+        // Key Detection
+        // User: <div id="butHrm4"><em class="small">C»Do</em></div>
+        let key = 'C';
+        const keyEl = doc.querySelector('.butCmd em') || doc.querySelector('div[id^="butHrm"] em');
+        if (keyEl) {
+            const text = keyEl.textContent; // "C»Do"
+            const parts = text.split('»');
+            if (parts.length > 0) {
+                 key = parts[0].trim();
+            }
+        }
+
         return {
             title,
             raw: formatted,
             original_link: '', 
-            key: 'C', 
+            key, 
             bpm: 0,
             time_signature: '4/4'
         };
