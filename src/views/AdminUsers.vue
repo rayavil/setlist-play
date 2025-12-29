@@ -101,7 +101,7 @@ onMounted(async () => {
   const { data } = await supabase
     .from("profiles")
     .select("*")
-    .order("created_at", { ascending: false }); // Assuming created_at exists, else updated_at
+    .order("updated_at", { ascending: false });
   if (data) users.value = data;
   loading.value = false;
 });

@@ -145,13 +145,6 @@
                         >
                             <i class="ph ph-trash text-base"></i>
                         </button>
-                        <button 
-                            @click="deleteSong(song)"
-                            class="text-xs bg-red-900/20 hover:bg-red-900/40 text-red-400 border border-red-900/30 px-3 py-2.5 rounded-lg transition flex items-center gap-1.5 active:scale-95"
-                            title="Eliminar permanentemente"
-                        >
-                            <i class="ph ph-trash text-base"></i>
-                        </button>
                     </div>
 
                     <!-- View Button (Eye) - For All Songs -->
