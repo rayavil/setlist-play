@@ -145,7 +145,23 @@
                         >
                             <i class="ph ph-trash text-base"></i>
                         </button>
+                        <button 
+                            @click="deleteSong(song)"
+                            class="text-xs bg-red-900/20 hover:bg-red-900/40 text-red-400 border border-red-900/30 px-3 py-2.5 rounded-lg transition flex items-center gap-1.5 active:scale-95"
+                            title="Eliminar permanentemente"
+                        >
+                            <i class="ph ph-trash text-base"></i>
+                        </button>
                     </div>
+
+                    <!-- View Button (Eye) - For All Songs -->
+                    <button 
+                         @click="openViewerModal(song)"
+                         class="text-xs bg-gray-800 hover:bg-gray-700 text-indigo-400 border border-gray-700 px-3 py-2.5 rounded-lg transition flex items-center gap-1.5 active:scale-95"
+                         title="Ver Canción"
+                    >
+                         <i class="ph ph-eye text-base"></i>
+                    </button>
                  </div>
                  
                  <!-- Meta -->
@@ -196,6 +212,12 @@
         :isSaving="isSaving"
         @save="handleSaveSong"
     />
+    
+    <!-- Song Viewer Modal -->
+    <SongViewerModal
+        v-model="showViewerModal"
+        :song="viewingSong"
+    />
   </div>
 </template>
 
@@ -204,6 +226,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { supabase } from '../lib/supabase';
 import Swal from 'sweetalert2';
 import SongModal from '../components/SongModal.vue';
+import SongViewerModal from '../components/SongViewerModal.vue';
 
 const loading = ref(true);
 const songs = ref([]);
@@ -218,6 +241,10 @@ const usageMap = ref({});
 const showSongModal = ref(false);
 const editingSong = ref(null); // Track which song is being edited
 const isSaving = ref(false);
+
+// Viewer State
+const showViewerModal = ref(false);
+const viewingSong = ref(null);
 
 // Add To Setlist Logic
 const showAddModal = ref(false);
@@ -455,6 +482,11 @@ function openAddSongModal() {
 function openEditSongModal(song) {
     editingSong.value = song;
     showSongModal.value = true;
+}
+
+function openViewerModal(song) {
+    viewingSong.value = song;
+    showViewerModal.value = true;
 }
 
 async function handleSaveSong(formData) {
