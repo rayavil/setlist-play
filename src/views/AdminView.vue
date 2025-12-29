@@ -51,11 +51,46 @@
         </button>
       </div>
     </div>
+
+    <!-- Invite Friends Section -->
+    <div class="mt-10 bg-indigo-900/20 border border-indigo-500/30 rounded-2xl p-6">
+        <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-indigo-400">
+            <i class="ph ph-share-network"></i> Invitar Amigos
+        </h3>
+        <p class="text-gray-400 mb-4 text-sm">Comparte este enlace para que tus amigos se registren en la plataforma.</p>
+        
+        <div class="flex flex-col sm:flex-row gap-4">
+            <div class="flex-1 bg-gray-950 border border-gray-800 rounded-lg flex items-center px-4 py-2">
+                <span class="text-gray-500 text-sm truncate mr-2">{{ inviteUrl }}</span>
+                <button 
+                    @click="copyLink" 
+                    class="ml-auto text-indigo-400 hover:text-white font-bold text-xs"
+                >
+                    {{ copied ? '¡Copiado!' : 'Copiar' }}
+                </button>
+            </div>
+            
+            <a 
+                :href="whatsappLink" 
+                target="_blank"
+                class="bg-[#25D366] hover:bg-[#128C7E] text-white px-6 py-2 rounded-lg font-bold flex items-center justify-center gap-2 transition"
+            >
+                <i class="ph ph-whatsapp-logo text-lg"></i> WhatsApp
+            </a>
+            
+             <a 
+                :href="emailLink"
+                class="bg-gray-700 hover:bg-gray-600 text-white px-6 py-2 rounded-lg font-bold flex items-center justify-center gap-2 transition"
+            >
+                <i class="ph ph-envelope text-lg"></i> Email
+            </a>
+        </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { supabase } from "../lib/supabase";
 
 const loading = ref(true);
@@ -64,6 +99,19 @@ const stats = ref({
   songs: 0,
   setlists: 0,
 });
+
+// Invite System
+const inviteUrl = window.location.origin + '/login';
+const inviteText = "¡Hola! Únete a SetList Play para gestionar tus canciones y setlists. Regístrate aquí:";
+const whatsappLink = computed(() => `https://wa.me/?text=${encodeURIComponent(inviteText + ' ' + inviteUrl)}`);
+const emailLink = computed(() => `mailto:?subject=Invitación a SetList Play&body=${encodeURIComponent(inviteText + ' ' + inviteUrl)}`);
+
+const copied = ref(false);
+function copyLink() {
+    navigator.clipboard.writeText(inviteUrl);
+    copied.value = true;
+    setTimeout(() => copied.value = false, 2000);
+}
 
 onMounted(async () => {
   loading.value = true;

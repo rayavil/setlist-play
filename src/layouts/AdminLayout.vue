@@ -26,7 +26,10 @@
           class="flex items-center gap-3 px-4 py-3 rounded-lg border border-transparent hover:bg-gray-900 transition"
         >
           <i class="ph ph-users text-xl"></i>
-          <span class="font-bold">Usuarios</span>
+          <span class="font-bold flex-1">Usuarios</span>
+          <span v-if="pendingCount > 0" class="bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+            {{ pendingCount }}
+          </span>
         </router-link>
 
         <router-link
@@ -57,5 +60,18 @@
 </template>
 
 <script setup>
-// Layout logic if needed
+import { ref, onMounted } from 'vue';
+import { supabase } from '../lib/supabase';
+
+const pendingCount = ref(0);
+
+onMounted(async () => {
+    // Simple check for pending users
+    const { count } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_approved', false);
+    
+    pendingCount.value = count || 0;
+});
 </script>

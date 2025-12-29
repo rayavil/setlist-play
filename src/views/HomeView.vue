@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-black text-white p-6 pb-24">
     <header class="flex justify-between items-center mb-8">
       <h1
-        class="text-3xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent"
+        class="text-3xl font-bold bg-linear-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent"
       >
         SetList Play
       </h1>
@@ -15,6 +15,13 @@
           <i class="ph ph-shield-check"></i> Admin
         </router-link>
         
+        <router-link
+          to="/library"
+          class="text-sm bg-indigo-600 border border-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-500 shadow-lg shadow-indigo-500/20 transition flex items-center gap-2 font-bold"
+        >
+          <i class="ph ph-books text-lg"></i> Biblioteca de Canciones
+        </router-link>
+
         <router-link 
           to="/help" 
           class="text-xs bg-gray-800 px-3 py-1 rounded border border-gray-700 hover:bg-gray-700 text-gray-300 flex items-center gap-1"
@@ -189,6 +196,35 @@
       </div>
     </section>
 
+    <!-- Invite Card -->
+    <section class="mt-12 mb-8">
+        <div class="bg-indigo-900/20 border border-indigo-500/30 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div>
+                <h3 class="text-lg font-bold flex items-center gap-2 text-indigo-400 mb-2">
+                    <i class="ph ph-gift"></i> Invita a tus amigos
+                </h3>
+                <p class="text-sm text-gray-400 max-w-md">
+                    Ayuda a crecer la comunidad de SetList Play compartiendo la app con otros músicos y líderes de alabanza.
+                </p>
+            </div>
+            <div class="flex gap-3">
+                 <a 
+                    :href="whatsappLink" 
+                    target="_blank"
+                    class="bg-[#25D366] hover:bg-[#128C7E] text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition text-sm shadow-lg"
+                >
+                    <i class="ph ph-whatsapp-logo text-lg"></i> WhatsApp
+                </a>
+                 <button 
+                    @click="copyLink" 
+                    class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition text-sm border border-gray-700"
+                >
+                    <i class="ph ph-link text-lg"></i> {{ copied ? 'Copiado' : 'Link' }}
+                </button>
+            </div>
+        </div>
+    </section>
+
     <!-- SETLIST MODAL (Create/Edit) -->
     <Transition name="fade">
     <div v-if="showSetlistModal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4" @click.self="closeSetlistModal">
@@ -299,7 +335,7 @@
 </style>
 
 <script setup>
-import { ref, onMounted, nextTick } from "vue";
+import { ref, onMounted, nextTick, computed } from "vue";
 import { supabase } from "../lib/supabase";
 import { useRouter } from "vue-router";
 import Swal from 'sweetalert2';
@@ -310,6 +346,18 @@ const userRole = ref(null);
 const mySetlists = ref([]);
 const publicSetlists = ref([]);
 const loading = ref(true);
+
+// Invite
+const inviteUrl = window.location.origin + '/login';
+const inviteText = "¡Hola! Únete a SetList Play para gestionar tus canciones y setlists. Regístrate aquí:";
+const whatsappLink = computed(() => `https://wa.me/?text=${encodeURIComponent(inviteText + ' ' + inviteUrl)}`);
+const copied = ref(false);
+
+function copyLink() {
+    navigator.clipboard.writeText(inviteUrl);
+    copied.value = true;
+    setTimeout(() => copied.value = false, 2000);
+}
 
 // Modal State
 const showSetlistModal = ref(false);

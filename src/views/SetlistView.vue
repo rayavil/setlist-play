@@ -462,305 +462,13 @@
     </Transition>
 
     <!-- SONG MODAL (Add/Edit) - Enhanced UX -->
-    <Transition name="fade">
-      <div
-        v-if="showSongModal"
-        class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex flex-col"
-        @click.self="closeSongModal"
-      >
-        <div class="flex-1 overflow-y-auto">
-          <div
-            class="min-h-full flex items-start sm:items-center justify-center p-4 py-8"
-          >
-            <div
-              class="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-lg shadow-2xl"
-            >
-              <!-- Header -->
-              <div
-                class="p-4 border-b border-gray-800 flex justify-between items-center"
-              >
-                <h2 class="text-xl font-bold flex items-center gap-2">
-                  <i class="ph ph-music-notes text-indigo-400"></i>
-                  {{ editingSong ? "Editar Canción" : "Nueva Canción" }}
-                </h2>
-                <button
-                  @click="closeSongModal"
-                  class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 text-xl"
-                >
-                  &times;
-                </button>
-              </div>
-
-              <!-- Form Body -->
-              <div class="p-4 space-y-5">
-                <!-- Title & Category -->
-                <div class="flex gap-2">
-                  <div class="flex-1">
-                    <label
-                      class="text-xs text-gray-400 block mb-1 font-bold uppercase tracking-wider"
-                      >Título *</label
-                    >
-                    <input
-                      v-model="songForm.title"
-                      type="text"
-                      class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white text-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
-                      placeholder="Ej: Grande es el Señor"
-                    />
-                  </div>
-                </div>
-
-                <!-- Category Badges Selector -->
-                <div>
-                  <label
-                    class="text-xs text-gray-400 block mb-2 font-bold uppercase tracking-wider"
-                    >Categoría</label
-                  >
-                  <div class="flex gap-2">
-                    <button
-                      @click="songForm.category = 'Alabanza'"
-                      class="px-3 py-1.5 rounded-lg border text-xs font-bold transition flex items-center gap-1"
-                      :class="
-                        songForm.category === 'Alabanza'
-                          ? 'bg-orange-600 border-orange-500 text-white shadow-lg shadow-orange-900/20'
-                          : 'bg-gray-800 border-gray-700 text-gray-400'
-                      "
-                    >
-                      Alabanza
-                    </button>
-                    <button
-                      @click="songForm.category = 'Adoración'"
-                      class="px-3 py-1.5 rounded-lg border text-xs font-bold transition flex items-center gap-1"
-                      :class="
-                        songForm.category === 'Adoración'
-                          ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-900/20'
-                          : 'bg-gray-800 border-gray-700 text-gray-400'
-                      "
-                    >
-                      Adoración
-                    </button>
-                    <button
-                      @click="songForm.category = 'Especial'"
-                      class="px-3 py-1.5 rounded-lg border text-xs font-bold transition flex items-center gap-1"
-                      :class="
-                        songForm.category === 'Especial'
-                          ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-900/20'
-                          : 'bg-gray-800 border-gray-700 text-gray-400'
-                      "
-                    >
-                      Especial
-                    </button>
-                    <button
-                      v-if="songForm.category"
-                      @click="songForm.category = ''"
-                      class="px-2 text-gray-500 text-lg hover:text-white"
-                    >
-                      &times;
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Key, BPM, Time Sig in Row -->
-                <div class="grid grid-cols-3 gap-3">
-                  <div>
-                    <label class="text-xs text-gray-400 block mb-1 font-bold"
-                      >Tono</label
-                    >
-                    <select
-                      v-model="songForm.key"
-                      class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-3 text-white text-center font-bold"
-                    >
-                      <option
-                        v-for="k in [
-                          'C',
-                          'C#',
-                          'D',
-                          'D#',
-                          'E',
-                          'F',
-                          'F#',
-                          'G',
-                          'G#',
-                          'A',
-                          'A#',
-                          'B',
-                          'Cm',
-                          'Dm',
-                          'Em',
-                          'Fm',
-                          'Gm',
-                          'Am',
-                          'Bm',
-                        ]"
-                        :key="k"
-                        :value="k"
-                      >
-                        {{ k }}
-                      </option>
-                    </select>
-                  </div>
-                  <div>
-                    <label class="text-xs text-gray-400 block mb-1 font-bold"
-                      >BPM</label
-                    >
-                    <input
-                      v-model.number="songForm.bpm"
-                      type="number"
-                      class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-3 text-white text-center font-bold"
-                      placeholder="120"
-                    />
-                  </div>
-                  <div>
-                    <label class="text-xs text-gray-400 block mb-1 font-bold"
-                      >Compás</label
-                    >
-                    <select
-                      v-model="songForm.time_signature"
-                      class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-3 text-white text-center font-bold"
-                    >
-                      <option value="4/4">4/4</option>
-                      <option value="3/4">3/4</option>
-                      <option value="6/8">6/8</option>
-                      <option value="2/4">2/4</option>
-                    </select>
-                  </div>
-                </div>
-
-                <!-- Lyrics Textarea with Helpers -->
-                <div>
-                  <label
-                    class="text-xs text-gray-400 block mb-1 font-bold uppercase tracking-wider"
-                    >Letra y Acordes</label
-                  >
-
-                  <!-- Quick Insert Toolbar -->
-                  <div class="flex flex-wrap gap-1.5 mb-2">
-                    <button
-                      type="button"
-                      @click="insertAtCursor('[C]')"
-                      class="px-2.5 py-1 bg-gray-800 hover:bg-indigo-900/50 text-gray-300 text-xs rounded-lg border border-gray-700 font-mono"
-                    >
-                      [C]
-                    </button>
-                    <button
-                      type="button"
-                      @click="insertAtCursor('[G]')"
-                      class="px-2.5 py-1 bg-gray-800 hover:bg-indigo-900/50 text-gray-300 text-xs rounded-lg border border-gray-700 font-mono"
-                    >
-                      [G]
-                    </button>
-                    <button
-                      type="button"
-                      @click="insertAtCursor('[Am]')"
-                      class="px-2.5 py-1 bg-gray-800 hover:bg-indigo-900/50 text-gray-300 text-xs rounded-lg border border-gray-700 font-mono"
-                    >
-                      [Am]
-                    </button>
-                    <button
-                      type="button"
-                      @click="insertAtCursor('[D]')"
-                      class="px-2.5 py-1 bg-gray-800 hover:bg-indigo-900/50 text-gray-300 text-xs rounded-lg border border-gray-700 font-mono"
-                    >
-                      [D]
-                    </button>
-                    <span class="border-l border-gray-700 mx-1"></span>
-                    <button
-                      type="button"
-                      @click="insertAtCursor('Verso\n')"
-                      class="px-2.5 py-1 bg-indigo-900/30 hover:bg-indigo-900/50 text-indigo-300 text-xs rounded-lg border border-indigo-800 font-bold"
-                    >
-                      Verso
-                    </button>
-                    <button
-                      type="button"
-                      @click="insertAtCursor('Coro\n')"
-                      class="px-2.5 py-1 bg-indigo-900/30 hover:bg-indigo-900/50 text-indigo-300 text-xs rounded-lg border border-indigo-800 font-bold"
-                    >
-                      Coro
-                    </button>
-                    <button
-                      type="button"
-                      @click="insertAtCursor('Puente\n')"
-                      class="px-2.5 py-1 bg-indigo-900/30 hover:bg-indigo-900/50 text-indigo-300 text-xs rounded-lg border border-indigo-800 font-bold"
-                    >
-                      Puente
-                    </button>
-                    <button
-                      type="button"
-                      @click="insertAtCursor('(x2)')"
-                      class="px-2.5 py-1 bg-gray-800 hover:bg-gray-700 text-gray-400 text-xs rounded-lg border border-gray-700"
-                    >
-                      (x2)
-                    </button>
-                  </div>
-
-                  <textarea
-                    ref="lyricsTextarea"
-                    v-model="songForm.raw"
-                    class="w-full h-64 bg-gray-800 border border-gray-700 rounded-xl p-4 text-white font-mono text-sm leading-relaxed focus:ring-2 focus:ring-indigo-600 focus:border-transparent resize-none"
-                    placeholder="Escribe o pega tu canción aquí..."
-                    spellcheck="false"
-                  ></textarea>
-
-                  <!-- Format Help -->
-                  <p class="text-[10px] text-gray-500 mt-2 text-right">
-                    Usa [C] para acordes, {V} para etiquetas
-                  </p>
-                </div>
-
-                <!-- Metadata Fields (Link/Notes) -->
-                <div class="space-y-3 pt-2 border-t border-gray-800">
-                  <div>
-                    <label class="text-xs text-gray-400 block mb-1 font-bold"
-                      >Link de Referencia (YouTube/Spotify)</label
-                    >
-                    <input
-                      v-model="songForm.original_link"
-                      type="text"
-                      class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-white text-sm focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
-                      placeholder="https://..."
-                    />
-                  </div>
-                  <div>
-                    <label class="text-xs text-gray-400 block mb-1 font-bold"
-                      >Notas de Ejecución / Internas</label
-                    >
-                    <textarea
-                      v-model="songForm.notes"
-                      rows="2"
-                      class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-white text-sm focus:ring-2 focus:ring-indigo-600 focus:border-transparent resize-none"
-                      placeholder="Intro suave, solo de guitarra al final..."
-                    ></textarea>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Footer Actions -->
-              <div class="p-4 border-t border-gray-800 grid grid-cols-2 gap-3">
-                <button
-                  @click="closeSongModal"
-                  class="py-3 rounded-xl bg-gray-800 text-gray-300 font-bold text-center active:scale-95 transition"
-                >
-                  Cancelar
-                </button>
-                <button
-                  @click="saveSong"
-                  :disabled="isSaving || !songForm.title"
-                  class="py-3 rounded-xl bg-indigo-600 text-white font-bold text-center disabled:opacity-50 active:scale-95 transition"
-                >
-                  {{
-                    isSaving
-                      ? "Guardando..."
-                      : editingSong
-                      ? "Guardar"
-                      : "Agregar"
-                  }}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Transition>
+    <!-- SONG MODAL (Add/Edit) -->
+    <SongModal
+      v-model="showSongModal"
+      :songToEdit="editingSong"
+      :isSaving="isSaving"
+      @save="saveSong"
+    />
 
     <!-- LIBRARY IMPORT MODAL -->
     <Transition name="fade">
@@ -1000,6 +708,7 @@ import { useRouter } from "vue-router";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Swal from 'sweetalert2';
+import SongModal from '../components/SongModal.vue';
 
 const props = defineProps(["id"]);
 const router = useRouter();
@@ -1297,16 +1006,6 @@ let dragStartY = 0;
 // Song CRUD Modal State
 const showSongModal = ref(false);
 const editingSong = ref(null); // null = Add Mode, object = Edit Mode
-const songForm = ref({
-  title: "",
-  key: "C",
-  bpm: 120,
-  time_signature: "4/4",
-  raw: "",
-  original_link: "", // New field
-  notes: "", // New field
-  category: "", // New field
-});
 
 // Computed
 const filteredSongs = computed(() => {
@@ -1908,54 +1607,13 @@ async function shareSetlist() {
 // Song CRUD Functions
 const lyricsTextarea = ref(null);
 
-function insertAtCursor(text) {
-  const textarea = lyricsTextarea.value;
-  if (!textarea) {
-    songForm.value.raw += text;
-    return;
-  }
-
-  const start = textarea.selectionStart;
-  const end = textarea.selectionEnd;
-  const before = songForm.value.raw.substring(0, start);
-  const after = songForm.value.raw.substring(end);
-
-  songForm.value.raw = before + text + after;
-
-  // Restore focus and cursor position
-  setTimeout(() => {
-    textarea.focus();
-    textarea.selectionStart = textarea.selectionEnd = start + text.length;
-  }, 0);
-}
-
 function openAddSongModal() {
   editingSong.value = null;
-  songForm.value = {
-    title: "",
-    key: "C",
-    bpm: 120,
-    time_signature: "4/4",
-    raw: "",
-    original_link: "",
-    notes: "",
-    category: "",
-  };
   showSongModal.value = true;
 }
 
 function openEditSongModal(song) {
   editingSong.value = song;
-  songForm.value = {
-    title: song.title || "",
-    key: song.key || "C",
-    bpm: song.bpm || 120,
-    time_signature: song.time_signature || "4/4",
-    raw: song.raw || "",
-    original_link: song.original_link || "",
-    notes: song.notes || "",
-    category: song.category || "",
-  };
   showSongModal.value = true;
 }
 
@@ -1964,8 +1622,8 @@ function closeSongModal() {
   editingSong.value = null;
 }
 
-async function saveSong() {
-  if (!songForm.value.title || isSaving.value) return;
+async function saveSong(formData) {
+  if (!formData.title || isSaving.value) return;
   isSaving.value = true;
 
   try {
@@ -1974,31 +1632,35 @@ async function saveSong() {
       const { error } = await supabase
         .from("songs")
         .update({
-          title: songForm.value.title,
-          key: songForm.value.key,
-          bpm: songForm.value.bpm,
-          time_signature: songForm.value.time_signature,
-          raw: songForm.value.raw,
-          original_link: songForm.value.original_link,
-          notes: songForm.value.notes,
-          category: songForm.value.category,
+          title: formData.title,
+          key: formData.key,
+          bpm: formData.bpm,
+          time_signature: formData.time_signature,
+          raw: formData.raw,
+          original_link: formData.original_link,
+          notes: formData.notes,
+          category: formData.category,
         })
         .eq("id", editingSong.value.id);
 
       if (error) throw error;
+      
+      // Update local object immediately
+      Object.assign(editingSong.value, formData);
+
     } else {
       // CREATE new song AND add to setlist
       const { data, error } = await supabase
         .from("songs")
         .insert({
-          title: songForm.value.title,
-          key: songForm.value.key,
-          bpm: songForm.value.bpm,
-          time_signature: songForm.value.time_signature,
-          raw: songForm.value.raw,
-          original_link: songForm.value.original_link,
-          notes: songForm.value.notes,
-          category: songForm.value.category,
+          title: formData.title,
+          key: formData.key,
+          bpm: formData.bpm,
+          time_signature: formData.time_signature,
+          raw: formData.raw,
+          original_link: formData.original_link,
+          notes: formData.notes,
+          category: formData.category,
           owner_id: user.value?.id
         })
         .select()
@@ -2015,10 +1677,23 @@ async function saveSong() {
       });
 
       if (itemError) throw itemError;
+      
+      // Refresh list to show new song
+      await fetchSongs();
     }
 
-    await fetchSongs();
     closeSongModal();
+    
+    Swal.fire({
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 3000,
+      icon: 'success',
+      title: editingSong.value ? 'Canción actualizada' : 'Canción agregada',
+      background: '#1f2937', color: '#fff'
+    });
+
   } catch (err) {
     console.error(err);
     alert("Error guardando: " + err.message);

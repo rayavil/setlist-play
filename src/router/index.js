@@ -3,6 +3,7 @@ import HomeView from "../views/HomeView.vue";
 import SetlistView from "../views/SetlistView.vue";
 import LoginView from "../views/LoginView.vue";
 import HelpView from "../views/HelpView.vue";
+import SongLibraryView from "../views/SongLibraryView.vue";
 
 import { supabase } from "../lib/supabase";
 
@@ -16,6 +17,7 @@ const routes = [
   { path: "/help", component: HelpView },
   { path: "/login", component: LoginView },
   { path: "/setlist/:id", component: SetlistView, props: true },
+  { path: "/library", component: SongLibraryView },
   {
     path: "/admin",
     component: AdminLayout,

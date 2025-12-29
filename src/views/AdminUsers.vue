@@ -19,6 +19,12 @@
             <th class="p-4 font-bold uppercase tracking-wider text-xs">
               Fecha Registro
             </th>
+             <th class="p-4 font-bold uppercase tracking-wider text-xs">
+              Estado
+            </th>
+            <th class="p-4 font-bold uppercase tracking-wider text-xs text-right">
+              Acciones
+            </th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-800">
@@ -48,6 +54,23 @@
             </td>
             <td class="p-4 text-gray-500">
               {{ new Date(user.updated_at || Date.now()).toLocaleDateString() }}
+            </td>
+            <td class="p-4">
+                <span 
+                    class="px-2 py-1 rounded text-xs font-bold uppercase"
+                    :class="user.is_approved ? 'bg-green-900/20 text-green-400 border border-green-900/30' : 'bg-yellow-900/20 text-yellow-400 border border-yellow-900/30'"
+                >
+                    {{ user.is_approved ? 'Aprobado' : 'Pendiente' }}
+                </span>
+            </td>
+            <td class="p-4 text-right">
+                <button 
+                    v-if="!user.is_approved"
+                    @click="approveUser(user)"
+                    class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-3 py-1.5 rounded transition"
+                >
+                    Aprobar
+                </button>
             </td>
           </tr>
         </tbody>
@@ -82,4 +105,21 @@ onMounted(async () => {
   if (data) users.value = data;
   loading.value = false;
 });
+
+async function approveUser(user) {
+    const { error } = await supabase
+        .from('profiles')
+        .update({ is_approved: true })
+        .eq('id', user.id);
+
+    if (error) {
+        alert('Error al aprobar: ' + error.message);
+    } else {
+        // Update local state
+        const idx = users.value.findIndex(u => u.id === user.id);
+        if (idx !== -1) {
+            users.value[idx].is_approved = true;
+        }
+    }
+}
 </script>
