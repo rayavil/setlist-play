@@ -4,44 +4,77 @@
   >
     <div class="w-full max-w-md space-y-8">
       <div class="text-center">
-        <h1 class="text-4xl font-bold text-indigo-500 mb-2">SetList Play</h1>
-        <p class="text-gray-400">Inicia sesión para gestionar tus listas</p>
+        <h1 class="text-4xl font-bold mb-2 transition-colors duration-300" 
+            :class="isRegistering ? 'text-emerald-500' : 'text-indigo-500'">
+            {{ isRegistering ? 'Crear Cuenta' : 'SetList Play' }}
+        </h1>
+        <p class="text-gray-400">
+            {{ isRegistering ? 'Únete a la comunidad de músicos' : 'Inicia sesión para gestionar tus listas' }}
+        </p>
       </div>
 
       <form class="mt-8 space-y-6" @submit.prevent="handleSubmit">
         <div class="space-y-4">
           <div>
-            <label for="email" class="sr-only">Correo</label>
+              <label for="email" class="sr-only">Correo</label>
             <input
               id="email"
               v-model="email"
               type="email"
               required
+              autocomplete="email"
               class="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-700 bg-gray-900 text-white placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               placeholder="Correo electrónico"
             />
           </div>
-          <div>
+          <div class="relative">
             <label for="password" class="sr-only">Contraseña</label>
             <input
               id="password"
               v-model="password"
-              type="password"
+              :type="showPassword ? 'text' : 'password'"
               required
-              class="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-700 bg-gray-900 text-white placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              autocomplete="current-password"
+              class="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-700 bg-gray-900 text-white placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm pr-10"
               placeholder="Contraseña"
             />
+            <button 
+                type="button"
+                @click="showPassword = !showPassword"
+                class="absolute right-3 top-3 text-gray-500 hover:text-white focus:outline-none"
+                tabindex="-1"
+            >
+                <i class="ph" :class="showPassword ? 'ph-eye-slash' : 'ph-eye'"></i>
+            </button>
           </div>
-          <div v-if="isRegistering">
-            <label for="fullName" class="sr-only">Nombre Completo</label>
-            <input
-              id="fullName"
-              v-model="fullName"
-              type="text"
-              required
-              class="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-700 bg-gray-900 text-white placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              placeholder="Nombre Completo"
-            />
+          
+          <div v-if="isRegistering" class="space-y-4">
+              <!-- Confirm Password -->
+              <div>
+                <label for="confirmPassword" class="sr-only">Confirmar Contraseña</label>
+                <input
+                  id="confirmPassword"
+                  v-model="confirmPassword"
+                  type="password"
+                  required
+                  autocomplete="new-password"
+                  class="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-700 bg-gray-900 text-white placeholder-gray-500 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
+                  placeholder="Confirmar Contraseña"
+                />
+              </div>
+
+              <!-- Full Name -->
+              <div>
+                <label for="fullName" class="sr-only">Nombre Completo</label>
+                <input
+                  id="fullName"
+                  v-model="fullName"
+                  type="text"
+                  required
+                  class="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-700 bg-gray-900 text-white placeholder-gray-500 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
+                  placeholder="Nombre Completo"
+                />
+              </div>
           </div>
         </div>
 
@@ -49,7 +82,8 @@
           <button
             type="submit"
             :disabled="loading"
-            class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+            class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 transition-colors duration-300"
+            :class="isRegistering ? 'bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500' : 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500'"
           >
             {{ loading ? "Procesando..." : (isRegistering ? "Registrarse" : "Ingresar") }}
           </button>
@@ -92,15 +126,22 @@ import Swal from "sweetalert2";
 const router = useRouter();
 const email = ref("");
 const password = ref("");
+const confirmPassword = ref(""); // New field
 const fullName = ref(""); // For registration
 const isRegistering = ref(false);
 const loading = ref(false);
 const errorMsg = ref("");
+const showPassword = ref(false);
 
 const handleSubmit = async () => {
   if (!email.value || !password.value) {
     errorMsg.value = "Por favor completa todos los campos.";
     return;
+  }
+
+  if (isRegistering.value && password.value !== confirmPassword.value) {
+      errorMsg.value = "Las contraseñas no coinciden.";
+      return;
   }
 
   loading.value = true;
