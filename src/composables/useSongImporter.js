@@ -26,15 +26,17 @@ export function useSongImporter() {
             
             const html = await res.text();
             
+            
+            // Clean up HTML before parsing? 
+            // Sometimes scripts or weird tags break the DOMParser
+            // But let's trust DOMParser for now.
+
             // Parse based on domain
-            if (url.includes('lacuerda.net')) {
-                return parseLaCuerda(html);
-            } else if (url.includes('palabrayespiritu.com') || url.includes('acordes.lacuerda.net')) {
-                 // Reuse LaCuerda parser for similar structures or add specific ones
-                 return parseLaCuerda(html);
+            if (url.includes('lacuerda.net') || url.includes('palabrayespiritu') || url.includes('cifraclub')) {
+                return parseLaCuerda(html); // Use the robust one for all common sites
             } else {
                 // Fallback: Try to extract title and content generically
-                return parseGeneric(html);
+                return parseLaCuerda(html); // Actually, the robust parser is better than 'parseGeneric'
             }
 
         } catch (e) {
@@ -64,8 +66,32 @@ export function useSongImporter() {
 
         // Extract Content (Pre tags usually)
         // LaCuerda: <pre id="ord_p">... content ...</pre>
-        const pre = doc.querySelector('pre#ord_p') || doc.querySelector('pre');
-        let raw = pre ? pre.textContent : '';
+        // Best Candidate Selection
+        // LaCuerda uses 'pre#ord_p' or 'div#t_core' sometimes.
+        const candidates = [
+            doc.querySelector('pre#ord_p'),
+            doc.querySelector('div#t_core'),
+            doc.querySelector('.core'),
+            doc.querySelector('#main_body') // Palabrayespiritu
+        ];
+
+        let contentEl = candidates.find(el => el && el.textContent.length > 50);
+
+        // Fallback: Find the element with most text that preserves whitespace
+        if (!contentEl) {
+             const allPres = Array.from(doc.querySelectorAll('pre, div'));
+             contentEl = allPres.reduce((best, el) => {
+                 const len = el.textContent.length;
+                 // Penalize elements with too much HTML (links, etc) if needed, but for now length is good proxy
+                 // Just avoid huge navigation menus
+                 if (len > (best?.len || 0) && len < 10000) {
+                     return { el, len };
+                 }
+                 return best;
+             }, null)?.el;
+        }
+
+        let raw = contentEl ? contentEl.innerText : ''; // innerText handles <br> better than textContent
 
         // Cleanup LaCuerda specific junk
         raw = raw.replace(/LaCuerda\.net/g, '');

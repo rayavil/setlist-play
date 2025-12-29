@@ -32,7 +32,7 @@
                         @click="mode = 'import'"
                         class="px-3 py-1 text-xs font-bold rounded-md transition flex items-center gap-1"
                         :class="mode === 'import' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white'"
-                    ><i class="ph ph-magic-wand"></i> Mágico</button>
+                    ><i class="ph ph-globe"></i> Importar</button>
                 </div>
             </div>
             
