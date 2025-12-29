@@ -16,7 +16,10 @@ export function useSongImporter() {
             // If running via generic Vite, this won't work locally without pointing to a deployed instance.
             // Let's fallback to specific logic or fail gracefully.
             
-            const apiUrl = `/api/fetch-url?url=${encodeURIComponent(url)}`;
+            // In local dev (Vite), /api/ doesn't exist. We must point to production.
+            // Replace 'setlist-play.vercel.app' with your actual Vercel domain if different.
+            const baseUrl = import.meta.env.DEV ? 'https://setlist-play.vercel.app' : '';
+            const apiUrl = `${baseUrl}/api/fetch-url?url=${encodeURIComponent(url)}`;
             
             const res = await fetch(apiUrl);
             if (!res.ok) throw new Error('Error al acceder a la URL (Proxy)');
@@ -69,14 +72,97 @@ export function useSongImporter() {
         raw = raw.replace(/Este fichero es trabajo propio.../g, '');
         raw = raw.trim();
 
+        const formatted = convertChordsToBracketed(raw);
+
         return {
             title,
-            raw,
-            original_link: '', // The user knows the link
-            key: 'C', // Detection would be cool but complex. Default to C
+            raw: formatted,
+            original_link: '', 
+            key: 'C', 
             bpm: 0,
             time_signature: '4/4'
         };
+    }
+
+    function convertChordsToBracketed(text) {
+        if (!text) return '';
+        const lines = text.split('\n');
+        const result = [];
+        
+        const isChordLine = (line) => {
+            if (!line.trim()) return false;
+            // Simple check: line has only valid chord chars and lots of spaces
+            // Valid chars: A-G, #, b, m, 7, 9, sus, dim, aug, /, digits, (, )
+            // And mostly spaces.
+            
+            const trimmed = line.trim();
+            // Split by spaces to check individual "tokens"
+            const tokens = trimmed.split(/\s+/);
+            const validChordRegex = /^[A-G](?:#|b)?(?:m|maj|min|dim|aug|sus|add|M)?\d*(?:\/[A-G](?:#|b)?)?\(?\)?$/;
+            
+            // If ALL tokens look like chords, it's likely a chord line
+            const allChords = tokens.every(t => validChordRegex.test(t.replace(/[()]/g, ''))); // loose check
+            
+            // Also check density (chords usually have gaps)
+            // But LaCuerda sometimes packs them. 
+            // Better heuristic: "Is mostly spaces" OR "Tokens are all chords"
+            return allChords;
+        };
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const nextLine = lines[i + 1];
+
+            if (isChordLine(line) && nextLine && !isChordLine(nextLine) && nextLine.trim().length > 0) {
+                // Merge!
+                let merged = "";
+                let offset = 0;
+                let lastIdx = 0;
+                
+                // Find chords in the line with their indices
+                const chordMatches = [];
+                const regex = /([A-G][^\s]*)/g;
+                let match;
+                while ((match = regex.exec(line)) !== null) {
+                    chordMatches.push({
+                        chord: match[0],
+                        index: match.index
+                    });
+                }
+                
+                let currentLyricIdx = 0;
+                
+                // Construct merged line
+                for (const item of chordMatches) {
+                    // Append lyrics up to this chord
+                    if (item.index > currentLyricIdx) {
+                       merged += nextLine.substring(currentLyricIdx, item.index);
+                       currentLyricIdx = item.index;
+                    }
+                    
+                    // If lyric line is shorter than chord position, pad with spaces?
+                    // Or just append.
+                    if (currentLyricIdx >= nextLine.length) {
+                       // We are past the lyrics, just append space + chord
+                       merged += " ".repeat(item.index - Math.max(currentLyricIdx, nextLine.length));
+                    }
+                    
+                    merged += '[' + item.chord + ']';
+                }
+                
+                // Append remaining lyrics
+                if (currentLyricIdx < nextLine.length) {
+                    merged += nextLine.substring(currentLyricIdx);
+                }
+                
+                result.push(merged);
+                i++; // Skip next line as we consumed it
+            } else {
+                result.push(line);
+            }
+        }
+        
+        return result.join('\n');
     }
 
     function parseGeneric(html) {
