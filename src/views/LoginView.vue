@@ -184,7 +184,14 @@ const handleSubmit = async () => {
         const { error, data } = result;
 
         if (error) {
-            errorMsg.value = error.message;
+            // Translate common Supabase errors to Spanish
+            if (error.message.includes('Invalid login credentials')) {
+                errorMsg.value = 'Correo o contraseña incorrectos. Verifica tus datos e intenta de nuevo.';
+            } else if (error.message.includes('Email not confirmed')) {
+                errorMsg.value = 'Tu correo aún no ha sido confirmado. Revisa tu bandeja de entrada.';
+            } else {
+                errorMsg.value = error.message;
+            }
         } else {
             // Check Approval Status
             const { data: profile } = await supabase
