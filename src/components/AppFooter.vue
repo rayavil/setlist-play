@@ -55,7 +55,7 @@ import { computed } from 'vue';
 const authorName = 'Ray Avila';
 const authorLink = 'mailto:ramonavil@gmail.com'; // Tu perfil de GitHub o sitio personal
 const githubLink = 'https://github.com/rayavil/setlist-play';
-const donationLink = 'https://buymeacoffee.com/setlistplay'; // Cambia a tu link de donación
+const donationLink = 'https://buymeacoffee.com/rayavil';
 
 const currentYear = computed(() => new Date().getFullYear());
 </script>
