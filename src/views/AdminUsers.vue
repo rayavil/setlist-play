@@ -191,19 +191,38 @@ async function approveUser(user) {
 }
 
 async function toggleApproval(user, status) {
-    const { error } = await supabase
+    console.log('Toggling approval for:', user.id, 'to:', status);
+    
+    const { data, error } = await supabase
         .from('profiles')
         .update({ is_approved: status })
-        .eq('id', user.id);
+        .eq('id', user.id)
+        .select();
+
+    console.log('Update result:', { data, error });
 
     if (error) {
-        alert('Error: ' + error.message);
+        console.error('Approval error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message || 'No se pudo actualizar el estado',
+            background: '#1f2937', color: '#fff'
+        });
     } else {
         // Update local state
         const idx = users.value.findIndex(u => u.id === user.id);
         if (idx !== -1) {
             users.value[idx].is_approved = status;
         }
+        Swal.fire({
+            icon: 'success',
+            title: status ? 'Aprobado' : 'Revocado',
+            text: status ? 'Usuario aprobado exitosamente' : 'Acceso revocado',
+            timer: 1500,
+            showConfirmButton: false,
+            background: '#1f2937', color: '#fff'
+        });
     }
 }
 
