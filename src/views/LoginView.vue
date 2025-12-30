@@ -121,6 +121,11 @@
           >← Volver al Inicio</router-link
         >
       </div>
+
+      <!-- Footer (simplified for login) -->
+      <div class="mt-12 text-center text-xs text-gray-600">
+        <p>© {{ new Date().getFullYear() }} SetList Play</p>
+      </div>
     </div>
   </div>
 </template>

@@ -228,6 +228,9 @@
         </div>
     </section>
 
+    <!-- Footer -->
+    <AppFooter />
+
     <!-- SETLIST MODAL (Create/Edit) -->
     <Transition name="fade">
     <div v-if="showSetlistModal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4" @click.self="closeSetlistModal">
@@ -342,6 +345,7 @@ import { ref, onMounted, nextTick, computed } from "vue";
 import { supabase } from "../lib/supabase";
 import { useRouter } from "vue-router";
 import Swal from 'sweetalert2';
+import AppFooter from '../components/AppFooter.vue';
 
 const router = useRouter();
 const user = ref(null);
