@@ -28,7 +28,7 @@
         <router-link to="/help" class="text-gray-500 hover:text-indigo-400 transition flex items-center gap-1">
           <i class="ph ph-question"></i> Ayuda
         </router-link>
-        <a href="mailto:contacto@setlistplay.com" class="text-gray-500 hover:text-indigo-400 transition flex items-center gap-1">
+        <a href="mailto:ramonavil@gmail.com" class="text-gray-500 hover:text-indigo-400 transition flex items-center gap-1">
           <i class="ph ph-envelope"></i> Contacto
         </a>
         <a :href="githubLink" target="_blank" class="text-gray-500 hover:text-indigo-400 transition flex items-center gap-1">
@@ -52,8 +52,8 @@
 import { computed } from 'vue';
 
 // Configuración - Actualiza estos valores con tus datos
-const authorName = 'Ramon Avilez';
-const authorLink = 'https://github.com/rayavil'; // Tu perfil de GitHub o sitio personal
+const authorName = 'Ray Avila';
+const authorLink = 'mailto:ramonavil@gmail.com'; // Tu perfil de GitHub o sitio personal
 const githubLink = 'https://github.com/rayavil/setlist-play';
 const donationLink = 'https://buymeacoffee.com/setlistplay'; // Cambia a tu link de donación
 
