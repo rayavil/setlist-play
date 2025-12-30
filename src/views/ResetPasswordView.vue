@@ -95,7 +95,34 @@ const successMsg = ref("");
 const showPassword = ref(false);
 
 onMounted(async () => {
-  // Check if we have a valid session from the reset email link
+  // Check for recovery token in URL hash
+  const hash = window.location.hash;
+  
+  if (hash && hash.includes('access_token')) {
+    // Parse the hash fragment to get tokens
+    const params = new URLSearchParams(hash.substring(1));
+    const accessToken = params.get('access_token');
+    const refreshToken = params.get('refresh_token');
+    
+    if (accessToken && refreshToken) {
+      // Set the session from the recovery tokens
+      const { error } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken
+      });
+      
+      if (error) {
+        console.error('Error setting session:', error);
+        errorMsg.value = "Error al procesar el link. Intenta solicitar otro reset.";
+        return;
+      }
+      
+      // Clear the hash from URL for cleaner look
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  }
+  
+  // Now check if we have a valid session
   const { data: { session } } = await supabase.auth.getSession();
   
   if (!session) {
