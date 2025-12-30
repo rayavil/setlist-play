@@ -4,6 +4,7 @@
   >
     <div class="w-full max-w-md space-y-8">
       <div class="text-center">
+        <img src="/logo.PNG" alt="SetList Play" class="w-20 h-20 rounded-2xl shadow-xl mx-auto mb-4" />
         <h1 class="text-4xl font-bold mb-2 transition-colors duration-300" 
             :class="isRegistering ? 'text-emerald-500' : 'text-indigo-500'">
             {{ isRegistering ? 'Crear Cuenta' : 'SetList Play' }}

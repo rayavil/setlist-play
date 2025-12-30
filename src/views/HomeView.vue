@@ -1,11 +1,14 @@
 <template>
   <div class="min-h-screen bg-black text-white p-6 pb-24">
     <header class="flex justify-between items-center mb-8">
-      <h1
-        class="text-3xl font-bold bg-linear-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent"
-      >
-        SetList Play
-      </h1>
+      <div class="flex items-center gap-3">
+        <img src="/logo.PNG" alt="SetList Play" class="w-10 h-10 rounded-xl shadow-lg" />
+        <h1
+          class="text-2xl md:text-3xl font-bold bg-linear-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent"
+        >
+          SetList Play
+        </h1>
+      </div>
       <div v-if="user" class="flex items-center gap-3">
         <router-link 
           v-if="userRole === 'admin' || userRole === 'super_admin'"
