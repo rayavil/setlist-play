@@ -50,7 +50,7 @@
           
           <div v-if="isRegistering" class="space-y-4">
               <!-- Confirm Password -->
-              <div>
+              <div class="relative">
                 <label for="confirmPassword" class="sr-only">Confirmar Contraseña</label>
                 <input
                   id="confirmPassword"
@@ -58,10 +58,17 @@
                   type="password"
                   required
                   autocomplete="new-password"
-                  class="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-700 bg-gray-900 text-white placeholder-gray-500 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
+                  class="appearance-none rounded-lg relative block w-full px-3 py-3 border bg-gray-900 text-white placeholder-gray-500 focus:outline-none sm:text-sm pr-10 transition-colors"
+                  :class="passwordValidationClass"
                   placeholder="Confirmar Contraseña"
                 />
+                <div v-if="confirmPassword" class="absolute right-3 top-3">
+                  <i v-if="passwordsMatch" class="ph ph-check-circle text-green-500 text-lg"></i>
+                  <i v-else class="ph ph-x-circle text-red-500 text-lg"></i>
+                </div>
               </div>
+              <p v-if="confirmPassword && !passwordsMatch" class="text-red-400 text-xs -mt-2">Las contraseñas no coinciden</p>
+              <p v-if="confirmPassword && passwordsMatch" class="text-green-400 text-xs -mt-2">¡Contraseñas coinciden!</p>
 
               <!-- Full Name -->
               <div>
@@ -118,7 +125,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { supabase } from "../lib/supabase";
 import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
@@ -132,6 +139,17 @@ const isRegistering = ref(false);
 const loading = ref(false);
 const errorMsg = ref("");
 const showPassword = ref(false);
+
+// Real-time password validation
+const passwordsMatch = computed(() => {
+  return password.value && confirmPassword.value && password.value === confirmPassword.value;
+});
+
+const passwordValidationClass = computed(() => {
+  if (!confirmPassword.value) return 'border-gray-700 focus:ring-emerald-500 focus:border-emerald-500';
+  if (passwordsMatch.value) return 'border-green-500 ring-1 ring-green-500 focus:ring-green-500 focus:border-green-500';
+  return 'border-red-500 ring-1 ring-red-500 focus:ring-red-500 focus:border-red-500';
+});
 
 const handleSubmit = async () => {
   if (!email.value || !password.value) {
