@@ -17,8 +17,8 @@ export function useSongImporter() {
             // Let's fallback to specific logic or fail gracefully.
             
             // In local dev (Vite), /api/ doesn't exist. We must point to production.
-            // Replace 'setlist-play.vercel.app' with your actual Vercel domain if different.
-            const baseUrl = import.meta.env.DEV ? 'https://setlist-play.vercel.app' : '';
+            // Replace 'setlistplay.vercel.app' with your actual Vercel domain if different.
+            const baseUrl = import.meta.env.DEV ? 'https://setlistplay.vercel.app' : '';
             const apiUrl = `${baseUrl}/api/fetch-url?url=${encodeURIComponent(url)}`;
             
             const res = await fetch(apiUrl);
